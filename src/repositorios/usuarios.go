@@ -37,6 +37,7 @@ func (repositorio Usuarios) Criar(usuario modelos.Usuario) (uint64, error) {
 
 	return uint64(ultimoIDInserido), nil
 }
+
 func (repositorio Usuarios) Buscar(nomeOuNick string) ([]modelos.Usuario, error) {
 	nomeOuNick = fmt.Sprintf("%%%s%%", nomeOuNick)
 
@@ -70,4 +71,49 @@ func (repositorio Usuarios) Buscar(nomeOuNick string) ([]modelos.Usuario, error)
 	}
 
 	return usuarios, nil
+}
+
+func (repositorio Usuarios) BuscarPorId(usuarioID uint64) (modelos.Usuario, error) {
+	linhas, erro := repositorio.db.Query(
+		"select id, nome, nick, email, criadoEm from usuarios where id = ?",
+		usuarioID)
+
+	if erro != nil {
+		return modelos.Usuario{}, erro
+	}
+
+	defer linhas.Close()
+
+	var usuario modelos.Usuario
+
+	if linhas.Next() {
+		if erro = linhas.Scan(
+			&usuario.ID,
+			&usuario.Nome,
+			&usuario.Nick,
+			&usuario.Email,
+			&usuario.CriadoEm,
+		); erro != nil {
+			return modelos.Usuario{}, erro
+		}
+	}
+
+	return usuario, nil
+}
+
+func (repositorio Usuarios) Atualizar(usuarioId uint64, usuario modelos.Usuario) error {
+	statement, erro := repositorio.db.Prepare(
+		"UPDATE USUARIO SET NOME = ?, NICK = ?, EMAIL = ? WHERE ID = ?")
+
+	if erro != nil {
+		return erro
+	}
+
+	defer statement.Close()
+
+	if _, erro := statement.Exec(usuario.Nome, usuario.Nick, usuario.Email, usuarioId); erro != nil {
+		return erro
+	}
+
+	return nil
 }
