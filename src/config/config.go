@@ -11,6 +11,7 @@ import (
 var (
 	ConnectionString = ""
 	Porta            = 0
+	SecretKey        []byte
 )
 
 func Carregar() {
@@ -27,4 +28,6 @@ func Carregar() {
 	}
 
 	ConnectionString = "aqui_vai_a_connection_string"
+
+	SecretKey = []byte(os.Getenv("SECRET_KEY"))
 }
